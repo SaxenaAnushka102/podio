@@ -20,6 +20,11 @@ void SIOReader::openFile(const std::string& filename) {
     throw std::runtime_error("File " + filename + " couldn't be opened");
   }
 
+  // Check if reading the TOC record is successful
+  if (!readFileTOCRecord()) {
+    throw std::runtime_error("Failed to read TOC record from file " + filename);
+  }
+
   // NOTE: reading TOC record first because that jumps back to the start of the file!
   readFileTOCRecord();
   readPodioHeader();
