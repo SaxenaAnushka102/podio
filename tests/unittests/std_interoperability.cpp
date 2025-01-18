@@ -1,6 +1,7 @@
 #include "datamodel/ExampleHit.h"
 #include "datamodel/ExampleHitCollection.h"
 #include "datamodel/MutableExampleHit.h"
+#include "podio/LinkCollection.h"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -561,11 +562,6 @@ TEST_CASE("Collection iterators", "[collection][container][iterator][std]") {
         // const_iterator
         STATIC_REQUIRE(std::is_swappable_v<const_iterator&>);
 
-        // std::iterator_traits<It>::value_type (required prior to C++20)
-        // iterator
-        STATIC_REQUIRE(traits::has_value_type_v<std::iterator_traits<iterator>>);
-        // const_iterator
-        STATIC_REQUIRE(traits::has_value_type_v<std::iterator_traits<const_iterator>>);
         // std::iterator_traits<It>::difference_type
         // iterator
         STATIC_REQUIRE(traits::has_difference_type_v<std::iterator_traits<iterator>>);
@@ -1030,9 +1026,7 @@ TEST_CASE("Collection and std iterator adaptors", "[collection][container][adapt
     STATIC_REQUIRE(traits::has_iterator_v<CollectionType>);
     STATIC_REQUIRE(traits::has_iterator_category_v<std::iterator_traits<const_iterator>>);
     STATIC_REQUIRE(std::is_base_of_v<std::input_iterator_tag, std::iterator_traits<const_iterator>::iterator_category>);
-#if (__cplusplus >= 202002L)
     STATIC_REQUIRE(std::input_iterator<const_iterator>);
-#endif
     STATIC_REQUIRE(std::is_same_v<const_iterator::reference, std::move_iterator<const_iterator>::reference>);
   }
 
@@ -1182,6 +1176,23 @@ TEST_CASE("Collection and unsupported std ranges algorithms", "[collection][rang
   DOCUMENTED_STATIC_FAILURE(is_range_adjacent_findable<CollectionType>);
   DOCUMENTED_STATIC_FAILURE(is_range_sortable<CollectionType>);
   DOCUMENTED_STATIC_FAILURE(is_range_fillable<CollectionType>);
+}
+
+TEST_CASE("LinkCollectionIterator and iterator concepts", "[links][iterator][std]") {
+  using link_iterator = podio::LinkCollectionIteratorT<ExampleHit, ExampleHit, true>;
+  using link_const_iterator = podio::LinkCollectionIteratorT<ExampleHit, ExampleHit, false>;
+
+  STATIC_REQUIRE(std::input_iterator<link_iterator>);
+  STATIC_REQUIRE(std::input_iterator<link_const_iterator>);
+}
+
+TEST_CASE("LinkCollection and range concepts", "[links][iterator][std]") {
+  using link_collection = podio::LinkCollection<ExampleHit, ExampleHit>;
+
+  STATIC_REQUIRE(std::ranges::input_range<link_collection>);
+  STATIC_REQUIRE(std::ranges::sized_range<link_collection>);
+  STATIC_REQUIRE(std::ranges::common_range<link_collection>);
+  STATIC_REQUIRE(std::ranges::viewable_range<link_collection>);
 }
 
 #undef DOCUMENTED_STATIC_FAILURE
